@@ -1,5 +1,6 @@
 var express = require('express');
 const router = express.Router()
+let nodemailer = require('nodemailer');
 let Docsmodel = require("../models/docsModel")
 const {
     adminLoginPage,
@@ -152,4 +153,63 @@ router.route('/view-all-theaters').get(checkAdmin, viewAllTheaters);
 router.route('/delete-theater/:id').get(checkAdmin, deleteTheater)
 router.route('/edit-theater/:id').get(checkAdmin, editTheaterForm).post(checkAdmin, editTheater);
 router.get('/getPlace', checkAdmin,viewAllTouristplaces)
+
+
+router.get("/addCertificate",(req,res)=>{
+    try {
+        res.render("admin/addCertificate")
+    } catch (error) {
+      console.log(error)  
+    }
+})
+router.get("/viewCertificate",(req,res)=>{
+    try {
+        res.render("admin/viewCertificate")
+    } catch (error) {
+      console.log(error)  
+    }
+})
+router.post("/add-Certificate",(req,res)=>{
+        try {
+            let {image} = req.files;
+            let {regNo} = req.body;
+            let {email} = req.body;
+            console.log(image,regNo,email)
+            console.log("mailing to comapny",req.params)
+            let transporter = nodemailer.createTransport({
+                service:'gmail',
+                auth:{
+                  user:'ecommercetest246@gmail.com',
+                  pass:'iftgqrcgrduigxuk'
+                },
+                tls:{
+                  rejectUnauthorized:false,
+                },
+              })
+
+              let mailOption  = {
+                from:"Commen  education platform",
+                to:email,
+                subject:"Certfication Compleated",
+                text:"Your certificate has been issued please use link to downlard certificate http://localhost:4000/admin/viewCertificate",
+              };
+
+              transporter.sendMail(mailOption,function(err,info){
+                if(err){
+                  console.log(err)
+                }else{
+                  console.log("emailsent Succecfully")
+                  image.mv('./public/Certificate/' + regNo + ".jpg").then((err) => {
+                    if (!err) {
+                        return res.redirect('/admin/addCertificate')
+                    }
+                    return res.redirect('/admin/addCertificate')
+                })
+                }
+              })
+           
+        } catch (error) {
+            console.log(error)
+        }
+})
 module.exports = router;
